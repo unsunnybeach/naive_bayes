@@ -186,3 +186,16 @@ Y_pred_cat = classifier.predict(X_test_cat)
 f1 = f1_score(Y_test_cat, Y_pred_cat, average='weighted')
 print("\nWyniki dla zbioru danych Iris:")
 print(f"Współczynnik F1: {f1:.2f}")
+
+
+#Wyniki dla zbioru danych Breast Cancer:
+#Współczynnik F1: 0.96
+
+#Wyniki dla zbioru danych MNIST:
+#Współczynnik F1: 0.84
+
+#Wyniki dla zbioru danych 20 Newsgroups:
+#Współczynnik F1: 0.99
+
+#Wyniki dla zbioru danych Iris:
+#Współczynnik F1: 0.82
