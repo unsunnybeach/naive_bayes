@@ -178,7 +178,7 @@ f1 = f1_score(Y_test_cat, Y_pred_cat, average='weighted')
 print("\nWyniki dla zbioru danych Iris:")
 print(f"Współczynnik F1: {f1:.2f}")
 
-
+#WYNIK:
 #Wyniki dla zbioru danych Breast Cancer:
 #Współczynnik F1: 0.96
 
@@ -190,3 +190,84 @@ print(f"Współczynnik F1: {f1:.2f}")
 
 #Wyniki dla zbioru danych Iris:
 #Współczynnik F1: 0.82
+
+
+class TestNaiveBayesClassifier(unittest.TestCase):
+    def setUp(self):
+        # Przygotowanie zbiorów danych do testów
+        # Zbiór danych dotyczący raka piersi
+        self.breast_cancer_data = pd.read_csv("Breast_cancer_data.csv")[["mean_radius", "mean_texture", "mean_smoothness", "diagnosis"]]
+        self.bc_train, self.bc_test = train_test_split(self.breast_cancer_data, test_size=0.2, random_state=41)
+        
+        # Zbiór danych MNIST
+        (self.train_images, self.train_labels), (self.test_images, self.test_labels) = mnist.load_data()
+        self.train_images_binary = (self.train_images > 127).astype(int).reshape(self.train_images.shape[0], -1)
+        self.test_images_binary = (self.test_images > 127).astype(int).reshape(self.test_images.shape[0], -1)
+        
+        # Dane tekstowe (20 Newsgroups)
+        newsgroups = fetch_20newsgroups(subset='all', categories=['rec.sport.baseball', 'sci.space'])
+        self.text_X = newsgroups.data
+        self.text_Y = newsgroups.target
+        self.text_X_train, self.text_X_test, self.text_Y_train, self.text_Y_test = train_test_split(self.text_X, self.text_Y, test_size=0.2, random_state=41)
+        
+        # Zbiór danych Iris (przekonwertowany na dane kategoryczne)
+        iris = load_iris()
+        X_iris = iris.data
+        Y_iris = iris.target
+        self.X_iris_cat = np.array([np.digitize(X_iris[:, i], bins=np.linspace(0, 8, num=4)) for i in range(X_iris.shape[1])]).T
+        self.X_train_cat, self.X_test_cat, self.Y_train_cat, self.Y_test_cat = train_test_split(self.X_iris_cat, Y_iris, test_size=0.2, random_state=41)
+
+    def test_breast_cancer(self):
+        # Test dla zbioru danych dotyczącego raka piersi
+        classifier = NaiveBayesClassifier(data_type="continuous")
+        X_train = self.bc_train.iloc[:, :-1].values
+        Y_train = self.bc_train.iloc[:, -1].values
+        X_test = self.bc_test.iloc[:, :-1].values
+        Y_test = self.bc_test.iloc[:, -1].values
+        classifier.fit(X_train, Y_train)
+        Y_pred = classifier.predict(X_test)
+        f1 = f1_score(Y_test, Y_pred, average='weighted')
+        print("Współczynnik F1 dla zbioru danych dotyczącego raka piersi:", f1)
+        self.assertGreater(f1, 0.7)  # Przykładowy próg
+
+    def test_mnist(self):
+        # Test dla zbioru danych MNIST
+        classifier = NaiveBayesClassifier(data_type="binary")
+        classifier.fit(self.train_images_binary, self.train_labels)
+        Y_pred = classifier.predict(self.test_images_binary)
+        f1 = f1_score(self.test_labels, Y_pred, average='weighted')
+        print("Współczynnik F1 dla zbioru danych MNIST:", f1)
+        self.assertGreater(f1, 0.7)
+
+    def test_text_classification(self):
+        # Test dla zbioru danych 20 Newsgroups
+        classifier = NaiveBayesClassifier(data_type="text")
+        classifier.fit(self.text_X_train, self.text_Y_train)
+        Y_pred = classifier.predict(self.text_X_test)
+        f1 = f1_score(self.text_Y_test, Y_pred, average='weighted')
+        print("Współczynnik F1 dla zbioru danych 20 Newsgroups:", f1)
+        self.assertGreater(f1, 0.7)
+
+    def test_iris(self):
+        # Test dla zbioru danych Iris z kodowaniem kategorycznym
+        classifier = NaiveBayesClassifier(data_type="categorical")
+        classifier.fit(self.X_train_cat, self.Y_train_cat)
+        Y_pred = classifier.predict(self.X_test_cat)
+        f1 = f1_score(self.Y_test_cat, Y_pred, average='weighted')
+        print("Współczynnik F1 dla zbioru danych Iris:", f1)
+        self.assertGreater(f1, 0.7)
+
+if __name__ == "__main__":
+    unittest.main()
+    # unittest.main(argv=['first-arg-is-ignored'], exit=False)
+
+#WYNIK:
+# .Współczynnik F1 dla zbioru danych dotyczącego raka piersi: 0.9644506001846722
+# .Współczynnik F1 dla zbioru danych Iris: 0.8209876543209875
+# .Współczynnik F1 dla zbioru danych MNIST: 0.842804543780411
+# .
+# ----------------------------------------------------------------------
+# Ran 4 tests in 49.495s
+
+# OK
+# Współczynnik F1 dla zbioru danych 20 Newsgroups: 0.9899244332493703
